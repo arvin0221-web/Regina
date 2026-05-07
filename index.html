@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>金幣賭場</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <div id="login-screen" class="screen active">
+    <div class="login-bg"></div>
+    <div class="login-box">
+      <div class="logo">🎰</div>
+      <h1 class="game-title">金幣賭場</h1>
+      <p class="subtitle">輸入名字開始遊戲</p>
+      <input type="text" id="username-input" placeholder="你的名字" maxlength="16" autocomplete="off">
+      <button id="enter-btn" class="btn-primary">進入賭場</button>
+    </div>
+  </div>
+
+  <div id="main-screen" class="screen">
+    <header class="topbar">
+      <div class="topbar-left">
+        <span class="player-avatar" id="nav-avatar"></span>
+        <span class="player-name" id="nav-name"></span>
+      </div>
+      <div class="coins-display">
+        <span class="coin-icon">🪙</span>
+        <span id="nav-coins">0</span>
+      </div>
+      <nav class="nav-tabs">
+        <button class="tab active" data-tab="home">首頁</button>
+        <button class="tab" data-tab="horse">賭馬</button>
+        <button class="tab" data-tab="stock">股票</button>
+        <button class="tab" data-tab="leaderboard">排行榜</button>
+      </nav>
+    </header>
+
+    <main class="content">
+      <!-- 首頁 -->
+      <section id="tab-home" class="tab-content active">
+        <div class="home-grid">
+          <div class="welcome-card">
+            <div class="welcome-avatar" id="home-avatar"></div>
+            <h2 id="home-username"></h2>
+            <div class="big-coins"><span class="coin-icon">🪙</span><span id="home-coins">0</span></div>
+            <button id="checkin-btn" class="btn-primary">📅 每日簽到</button>
+            <p id="checkin-msg" class="checkin-msg"></p>
+          </div>
+          <div class="quick-links">
+            <button class="quick-card" onclick="switchTab('horse')">
+              <span class="qc-icon">🏇</span>
+              <span>賭馬</span>
+            </button>
+            <button class="quick-card" onclick="switchTab('stock')">
+              <span class="qc-icon">📈</span>
+              <span>股票</span>
+            </button>
+            <button class="quick-card" onclick="switchTab('leaderboard')">
+              <span class="qc-icon">🏆</span>
+              <span>排行榜</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 賭馬 -->
+      <section id="tab-horse" class="tab-content">
+        <div class="section-header">
+          <h2>🏇 賽馬場</h2>
+          <p>贏了獲得下注金額的 4 倍！</p>
+        </div>
+
+        <div id="horse-idle">
+          <div class="bet-setup">
+            <h3>選擇你要押注的馬</h3>
+            <div class="horse-select-grid">
+              <label class="horse-option" data-horse="red">
+                <input type="radio" name="horse" value="red">
+                <div class="horse-card">
+                  <span class="horse-emoji">🔴</span>
+                  <span>紅馬</span>
+                </div>
+              </label>
+              <label class="horse-option" data-horse="yellow">
+                <input type="radio" name="horse" value="yellow">
+                <div class="horse-card">
+                  <span class="horse-emoji">🟡</span>
+                  <span>黃馬</span>
+                </div>
+              </label>
+              <label class="horse-option" data-horse="blue">
+                <input type="radio" name="horse" value="blue">
+                <div class="horse-card">
+                  <span class="horse-emoji">🔵</span>
+                  <span>藍馬</span>
+                </div>
+              </label>
+              <label class="horse-option" data-horse="green">
+                <input type="radio" name="horse" value="green">
+                <div class="horse-card">
+                  <span class="horse-emoji">🟢</span>
+                  <span>綠馬</span>
+                </div>
+              </label>
+            </div>
+            <div class="bet-amount-row">
+              <input type="number" id="horse-bet-amount" placeholder="下注金額" min="1">
+              <button id="start-horse-btn" class="btn-primary">開始賽馬</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="horse-racing" style="display:none">
+          <div class="countdown-bar">
+            <span id="race-status">比賽進行中...</span>
+          </div>
+          <div class="track-container">
+            <div class="track" id="track-red">
+              <span class="track-label">🔴 紅馬</span>
+              <div class="track-lane">
+                <div class="horse-runner" id="runner-red">🏇</div>
+                <div class="finish-flag">🏁</div>
+              </div>
+            </div>
+            <div class="track" id="track-yellow">
+              <span class="track-label">🟡 黃馬</span>
+              <div class="track-lane">
+                <div class="horse-runner" id="runner-yellow">🏇</div>
+                <div class="finish-flag">🏁</div>
+              </div>
+            </div>
+            <div class="track" id="track-blue">
+              <span class="track-label">🔵 藍馬</span>
+              <div class="track-lane">
+                <div class="horse-runner" id="runner-blue">🏇</div>
+                <div class="finish-flag">🏁</div>
+              </div>
+            </div>
+            <div class="track" id="track-green">
+              <span class="track-label">🟢 綠馬</span>
+              <div class="track-lane">
+                <div class="horse-runner" id="runner-green">🏇</div>
+                <div class="finish-flag">🏁</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="horse-result" style="display:none" class="result-card">
+          <div id="result-title"></div>
+          <div id="result-detail"></div>
+          <button id="race-again-btn" class="btn-primary">再賭一場</button>
+        </div>
+      </section>
+
+      <!-- 股票 -->
+      <section id="tab-stock" class="tab-content">
+        <div class="section-header">
+          <h2>📈 股票市場</h2>
+          <p>每小時自動波動，高風險高報酬</p>
+        </div>
+        <div class="stock-grid" id="stock-grid"></div>
+        <div class="my-holdings">
+          <h3>我的持股</h3>
+          <div id="holdings-list"></div>
+        </div>
+      </section>
+
+      <!-- 排行榜 -->
+      <section id="tab-leaderboard" class="tab-content">
+        <div class="section-header">
+          <h2>🏆 排行榜</h2>
+          <p>金幣總量排名（含持股價值）</p>
+        </div>
+        <div class="leaderboard-wrap">
+          <div id="leaderboard-list" class="leaderboard-list"></div>
+          <div id="my-rank-row" class="my-rank-row" style="display:none"></div>
+        </div>
+        <button id="refresh-lb-btn" class="btn-secondary">🔄 重新整理</button>
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- Stock Modal -->
+<div id="stock-modal" class="modal-overlay" style="display:none">
+  <div class="modal-box">
+    <button class="modal-close" id="modal-close">✕</button>
+    <h3 id="modal-title"></h3>
+    <p id="modal-price"></p>
+    <p id="modal-owned"></p>
+    <div class="modal-tabs">
+      <button class="modal-tab active" id="modal-buy-tab">買入</button>
+      <button class="modal-tab" id="modal-sell-tab">賣出</button>
+    </div>
+    <div id="modal-buy-section">
+      <input type="number" id="modal-buy-amount" placeholder="花費金幣數量" min="1">
+      <p class="modal-hint" id="modal-buy-hint"></p>
+      <button id="modal-buy-btn" class="btn-primary">確認買入</button>
+    </div>
+    <div id="modal-sell-section" style="display:none">
+      <input type="number" id="modal-sell-shares" placeholder="賣出股數" min="0">
+      <p class="modal-hint" id="modal-sell-hint"></p>
+      <div class="sell-btns">
+        <button id="modal-sell-all-btn" class="btn-secondary">全部賣出</button>
+        <button id="modal-sell-btn" class="btn-primary">確認賣出</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="game.js"></script>
+</body>
+  </html>
