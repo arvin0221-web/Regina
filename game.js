@@ -1,13 +1,15 @@
 // ===================== FIREBASE 設定 =====================
-// ⚠️ 把下面這段換成你自己的 Firebase 設定
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyAIg3EJwhKY5K0LG5yWv-NT76lR9j8Z3GA",
+  authDomain: "regina-67.firebaseapp.com",
+  databaseURL: "https://regina-67-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "regina-67",
+  storageBucket: "regina-67.firebasestorage.app",
+  messagingSenderId: "946223992321",
+  appId: "1:946223992321:web:7350399023140a49323a00",
+  measurementId: "G-FVHFVB18SV"
 };
+
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
