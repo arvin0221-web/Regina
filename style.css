@@ -409,3 +409,87 @@ input::placeholder { color: var(--text2); }
 .toast.show { opacity: 1; }
 
 .coin-icon { font-size: 1em; }
+
+/* ====== CHAT ====== */
+.chat-container {
+  display: flex; flex-direction: column;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  height: 60vh;
+}
+.chat-messages {
+  flex: 1; overflow-y: auto;
+  padding: 1rem;
+  display: flex; flex-direction: column; gap: 0.6rem;
+  scroll-behavior: smooth;
+}
+.chat-messages::-webkit-scrollbar { width: 4px; }
+.chat-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.chat-msg {
+  display: flex; gap: 0.6rem; align-items: flex-start;
+  animation: fadeInUp 0.2s ease;
+}
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.chat-msg.is-system .chat-bubble {
+  background: rgba(240,192,64,0.08);
+  border: 1px solid rgba(240,192,64,0.2);
+  color: var(--gold);
+  font-size: 0.85rem;
+  font-style: italic;
+  width: 100%;
+}
+.chat-msg.is-me .chat-name { color: var(--gold); }
+.chat-avatar {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--bg3); color: var(--text2);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 0.75rem; flex-shrink: 0;
+}
+.chat-msg-content { flex: 1; }
+.chat-name { font-size: 0.78rem; color: var(--text2); margin-bottom: 2px; }
+.chat-bubble {
+  background: var(--bg2);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) var(--radius-sm);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+  display: inline-block;
+  max-width: 100%;
+  word-break: break-word;
+}
+.chat-time { font-size: 0.72rem; color: var(--text2); margin-top: 2px; }
+
+.chat-input-row {
+  display: flex; gap: 0.5rem;
+  padding: 0.75rem;
+  border-top: 1px solid var(--border);
+  background: var(--bg2);
+}
+.chat-input-row input { margin-bottom: 0; flex: 1; }
+.chat-input-row .btn-primary { width: auto; padding: 0.75rem 1.25rem; flex-shrink: 0; }
+
+/* ====== PASSWORD ====== */
+.password-row {
+  position: relative; width: 100%; margin-bottom: 0.5rem;
+}
+.password-row input {
+  width: 100%; margin-bottom: 0; padding-right: 2.8rem;
+}
+.toggle-pw {
+  position: absolute; right: 0.75rem; top: 50%;
+  transform: translateY(-50%);
+  background: none; border: none; cursor: pointer;
+  font-size: 1rem; color: var(--text2); padding: 0;
+  line-height: 1;
+}
+.login-error {
+  color: var(--red); font-size: 0.85rem;
+  min-height: 1.2em; margin-bottom: 0.5rem;
+  text-align: center;
+}
+#register-btn { margin-top: 0.5rem; }
