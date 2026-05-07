@@ -15,9 +15,15 @@
     <div class="login-box">
       <div class="logo">🎰</div>
       <h1 class="game-title">金幣賭場</h1>
-      <p class="subtitle">輸入名字開始遊戲</p>
-      <input type="text" id="username-input" placeholder="你的名字" maxlength="16" autocomplete="off">
-      <button id="enter-btn" class="btn-primary">進入賭場</button>
+      <p class="subtitle" id="login-subtitle">登入或註冊帳號</p>
+      <input type="text" id="username-input" placeholder="玩家名稱" maxlength="16" autocomplete="off">
+      <div class="password-row">
+        <input type="password" id="password-input" placeholder="密碼" maxlength="32" autocomplete="off">
+        <button class="toggle-pw" id="toggle-pw" type="button">👁</button>
+      </div>
+      <p id="login-error" class="login-error"></p>
+      <button id="enter-btn" class="btn-primary">登入</button>
+      <button id="register-btn" class="btn-secondary" style="margin-top:0.5rem">註冊新帳號</button>
     </div>
   </div>
 
@@ -36,6 +42,8 @@
         <button class="tab" data-tab="horse">賭馬</button>
         <button class="tab" data-tab="stock">股票</button>
         <button class="tab" data-tab="leaderboard">排行榜</button>
+        <button class="tab" data-tab="chat">聊天室</button>
+        <button class="tab" data-tab="chat">聊天室</button>
       </nav>
     </header>
 
@@ -182,6 +190,21 @@
         </div>
         <button id="refresh-lb-btn" class="btn-secondary">🔄 重新整理</button>
       </section>
+
+      <!-- 聊天室 -->
+      <section id="tab-chat" class="tab-content">
+        <div class="section-header">
+          <h2>💬 全服聊天室</h2>
+          <p>所有玩家都看得到你的訊息</p>
+        </div>
+        <div class="chat-container">
+          <div class="chat-messages" id="chat-messages"></div>
+          <div class="chat-input-row">
+            <input type="text" id="chat-input" placeholder="輸入訊息..." maxlength="100" autocomplete="off">
+            <button id="chat-send-btn" class="btn-primary">傳送</button>
+          </div>
+        </div>
+      </section>
     </main>
   </div>
 </div>
@@ -220,4 +243,4 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="game.js"></script>
 </body>
-  </html>
+    </html>
