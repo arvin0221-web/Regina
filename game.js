@@ -1,15 +1,13 @@
 // ===================== FIREBASE 設定 =====================
+// ⚠️ 把下面這段換成你自己的 Firebase 設定
 const firebaseConfig = {
-  apiKey: "AIzaSyAIg3EJwhKY5K0LG5yWv-NT76lR9j8Z3GA",
-  authDomain: "regina-67.firebaseapp.com",
-  databaseURL: "https://regina-67-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "regina-67",
-  storageBucket: "regina-67.firebasestorage.app",
-  messagingSenderId: "946223992321",
-  appId: "1:946223992321:web:7350399023140a49323a00",
-  measurementId: "G-FVHFVB18SV"
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
 };
-
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
@@ -317,10 +315,12 @@ async function showRaceResult(winner, bettedHorse, betAmount) {
     titleEl.innerHTML = `🎉 你贏了！`;
     titleEl.style.color = "var(--green)";
     detailEl.textContent = `${HORSE_NAMES[winner]} 獲勝！你獲得 🪙 ${formatCoins(prize)}（下注 × 4）`;
+    sendSystemMsg(`🎉 ${currentUser.name} 押 ${HORSE_NAMES[bettedHorse]} 贏得 🪙 ${formatCoins(prize)}！`);
   } else {
     titleEl.innerHTML = `💸 你輸了`;
     titleEl.style.color = "var(--red)";
     detailEl.textContent = `${HORSE_NAMES[winner]} 獲勝，你押的是 ${HORSE_NAMES[bettedHorse]}。損失 🪙 ${formatCoins(betAmount)}`;
+    sendSystemMsg(`💸 ${currentUser.name} 押 ${HORSE_NAMES[bettedHorse]} 輸掉 🪙 ${formatCoins(betAmount)}。`);
   }
   await savePlayer();
   updateNavCoins();
@@ -458,39 +458,212 @@ document.querySelectorAll(".tab").forEach(tab => {
   tab.onclick = () => switchTab(tab.dataset.tab);
 });
 
+// ===================== 密碼雜湊 =====================
+async function hashPassword(pw) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(pw));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,"0")).join("");
+}
+
 // ===================== 登入 =====================
+function setLoginError(msg) {
+  document.getElementById("login-error").textContent = msg;
+}
+
+function enterGame(user) {
+  document.getElementById("login-screen").classList.remove("active");
+  document.getElementById("main-screen").classList.add("active");
+  setAvatar(document.getElementById("nav-avatar"), user.name);
+  setAvatar(document.getElementById("home-avatar"), user.name);
+  document.getElementById("nav-name").textContent = user.name;
+  document.getElementById("home-username").textContent = user.name;
+  updateNavCoins();
+  const today = new Date().toISOString().split("T")[0];
+  const msg = document.getElementById("checkin-msg");
+  msg.textContent = user.lastCheckin === today ? "今天已經簽到過了，明天再來！" : "記得每天簽到領獎勵！";
+}
+
+// 登入按鈕
 document.getElementById("enter-btn").onclick = async () => {
   const name = document.getElementById("username-input").value.trim();
-  if (!name) return showToast("請輸入名字！");
-  if (name.length < 1 || name.length > 16) return showToast("名字需在 1~16 字之間");
+  const pw = document.getElementById("password-input").value;
+  setLoginError("");
+  if (!name) return setLoginError("請輸入玩家名稱");
+  if (!pw) return setLoginError("請輸入密碼");
 
-  document.getElementById("enter-btn").textContent = "載入中...";
+  const btn = document.getElementById("enter-btn");
+  btn.textContent = "登入中..."; btn.disabled = true;
 
   try {
-    currentUser = await loadOrCreatePlayer(name);
-    document.getElementById("login-screen").classList.remove("active");
-    document.getElementById("main-screen").classList.add("active");
+    const safeId = name.toLowerCase().replace(/[^a-z0-9一-鿿]/g, "_");
+    const snap = await db.collection("players").doc(safeId).get();
 
-    setAvatar(document.getElementById("nav-avatar"), currentUser.name);
-    setAvatar(document.getElementById("home-avatar"), currentUser.name);
-    document.getElementById("nav-name").textContent = currentUser.name;
-    document.getElementById("home-username").textContent = currentUser.name;
-    updateNavCoins();
-
-    const today = new Date().toISOString().split("T")[0];
-    const msg = document.getElementById("checkin-msg");
-    if (currentUser.lastCheckin === today) {
-      msg.textContent = "今天已經簽到過了，明天再來！";
-    } else {
-      msg.textContent = "記得每天簽到領獎勵！";
+    if (!snap.exists) {
+      setLoginError("找不到此帳號，請先註冊！");
+      btn.textContent = "登入"; btn.disabled = false;
+      return;
     }
+
+    const data = snap.data();
+    const hashed = await hashPassword(pw);
+    if (data.passwordHash !== hashed) {
+      setLoginError("密碼錯誤！");
+      btn.textContent = "登入"; btn.disabled = false;
+      return;
+    }
+
+    currentUser = { id: safeId, ...data };
+    enterGame(currentUser);
   } catch (e) {
-    showToast("❌ 連接 Firebase 失敗，請確認設定");
+    setLoginError("連接失敗，請確認 Firebase 設定");
     console.error(e);
-    document.getElementById("enter-btn").textContent = "進入賭場";
+    btn.textContent = "登入"; btn.disabled = false;
   }
 };
 
-document.getElementById("username-input").addEventListener("keydown", e => {
+// 註冊按鈕
+document.getElementById("register-btn").onclick = async () => {
+  const name = document.getElementById("username-input").value.trim();
+  const pw = document.getElementById("password-input").value;
+  setLoginError("");
+  if (!name) return setLoginError("請輸入玩家名稱");
+  if (name.length < 2 || name.length > 16) return setLoginError("名稱需在 2~16 字之間");
+  if (!pw || pw.length < 4) return setLoginError("密碼至少需要 4 個字元");
+
+  const btn = document.getElementById("register-btn");
+  btn.textContent = "註冊中..."; btn.disabled = true;
+
+  try {
+    const safeId = name.toLowerCase().replace(/[^a-z0-9一-鿿]/g, "_");
+    const snap = await db.collection("players").doc(safeId).get();
+
+    if (snap.exists) {
+      setLoginError("此名稱已被使用，請換一個！");
+      btn.textContent = "註冊新帳號"; btn.disabled = false;
+      return;
+    }
+
+    const hashed = await hashPassword(pw);
+    const newPlayer = {
+      id: safeId, name: name.trim(),
+      coins: 5000, holdings: {},
+      lastCheckin: null, passwordHash: hashed,
+      createdAt: Date.now()
+    };
+    await db.collection("players").doc(safeId).set(newPlayer);
+    currentUser = newPlayer;
+    enterGame(currentUser);
+  } catch (e) {
+    setLoginError("連接失敗，請確認 Firebase 設定");
+    console.error(e);
+    btn.textContent = "註冊新帳號"; btn.disabled = false;
+  }
+};
+ 
+// 顯示/隱藏密碼
+document.getElementById("toggle-pw").onclick = () => {
+  const input = document.getElementById("password-input");
+  const btn = document.getElementById("toggle-pw");
+  if (input.type === "password") { input.type = "text"; btn.textContent = "🙈"; }
+  else { input.type = "password"; btn.textContent = "👁"; }
+};
+ 
+document.getElementById("password-input").addEventListener("keydown", e => {
   if (e.key === "Enter") document.getElementById("enter-btn").click();
 });
+document.getElementById("username-input").addEventListener("keydown", e => {
+  if (e.key === "Enter") document.getElementById("password-input").focus();
+});
+// ===================== 聊天室 =====================
+let chatUnsubscribe = null;
+ 
+function formatTime(ts) {
+  if (!ts) return "";
+  const d = new Date(ts);
+  const h = d.getHours().toString().padStart(2,"0");
+  const m = d.getMinutes().toString().padStart(2,"0");
+  return `${h}:${m}`;
+}
+ 
+function appendChatMsg(data) {
+  const box = document.getElementById("chat-messages");
+  if (!box) return;
+  const isSystem = data.type === "system";
+  const isMe = data.uid === currentUser?.id;
+ 
+  const div = document.createElement("div");
+  div.className = "chat-msg" + (isSystem ? " is-system" : "") + (isMe ? " is-me" : "");
+ 
+  if (isSystem) {
+    div.innerHTML = `<div class="chat-bubble">${data.text}</div>`;
+  } else {
+    div.innerHTML = `
+      <div class="chat-avatar">${getInitial(data.name)}</div>
+      <div class="chat-msg-content">
+        <div class="chat-name">${data.name}</div>
+        <div class="chat-bubble">${escapeHtml(data.text)}</div>
+        <div class="chat-time">${formatTime(data.ts)}</div>
+      </div>
+    `;
+  }
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+function escapeHtml(str) {
+  return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+ 
+function startChatListener() {
+  if (chatUnsubscribe) return;
+  chatUnsubscribe = db.collection("chat")
+    .orderBy("ts", "asc")
+    .limitToLast(100)
+    .onSnapshot(snap => {
+      snap.docChanges().forEach(change => {
+        if (change.type === "added") appendChatMsg(change.doc.data());
+      });
+    });
+}
+ 
+async function sendChatMsg(text, type = "user") {
+  if (!currentUser) return;
+  await db.collection("chat").add({
+    uid: currentUser.id,
+    name: currentUser.name,
+    text,
+    type,
+    ts: Date.now()
+  });
+}
+ 
+// 系統訊息（賭馬結果用）
+async function sendSystemMsg(text) {
+  await db.collection("chat").add({
+    uid: "system",
+    name: "系統",
+    text,
+    type: "system",
+    ts: Date.now()
+  });
+}
+ 
+document.getElementById("chat-send-btn").onclick = async () => {
+  const input = document.getElementById("chat-input");
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = "";
+  await sendChatMsg(text);
+};
+document.getElementById("chat-input").addEventListener("keydown", e => {
+  if (e.key === "Enter") document.getElementById("chat-send-btn").click();
+});
+ 
+// 把聊天室加入分頁切換
+const _origSwitchTab = switchTab;
+// 覆寫 switchTab 讓切到 chat 時啟動監聽
+function switchTab(tabName) {
+  document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.tab === tabName));
+  document.querySelectorAll(".tab-content").forEach(c => c.classList.toggle("active", c.id === `tab-${tabName}`));
+  if (tabName === "stock") renderStocks();
+  if (tabName === "leaderboard") loadLeaderboard();
+  if (tabName === "chat") startChatListener();
+}
