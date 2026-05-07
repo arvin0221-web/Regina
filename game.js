@@ -1,5 +1,4 @@
 // ===================== FIREBASE 設定 =====================
-// ⚠️ 把下面這段換成你自己的 Firebase 設定
 const firebaseConfig = {
   apiKey: "AIzaSyAIg3EJwhKY5K0LG5yWv-NT76lR9j8Z3GA",
   authDomain: "regina-67.firebaseapp.com",
