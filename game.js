@@ -1,4 +1,5 @@
 // ===================== FIREBASE 設定 =====================
+
 const firebaseConfig = {
   apiKey: "AIzaSyAIg3EJwhKY5K0LG5yWv-NT76lR9j8Z3GA",
   authDomain: "regina-67.firebaseapp.com",
@@ -450,9 +451,9 @@ document.getElementById("refresh-lb-btn").onclick = loadLeaderboard;
 function switchTab(tabName) {
   document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.tab === tabName));
   document.querySelectorAll(".tab-content").forEach(c => c.classList.toggle("active", c.id === `tab-${tabName}`));
-
   if (tabName === "stock") renderStocks();
   if (tabName === "leaderboard") loadLeaderboard();
+  if (tabName === "chat") startChatListener();
 }
 
 document.querySelectorAll(".tab").forEach(tab => {
@@ -559,7 +560,7 @@ document.getElementById("register-btn").onclick = async () => {
     btn.textContent = "註冊新帳號"; btn.disabled = false;
   }
 };
- 
+
 // 顯示/隱藏密碼
 document.getElementById("toggle-pw").onclick = () => {
   const input = document.getElementById("password-input");
@@ -567,16 +568,17 @@ document.getElementById("toggle-pw").onclick = () => {
   if (input.type === "password") { input.type = "text"; btn.textContent = "🙈"; }
   else { input.type = "password"; btn.textContent = "👁"; }
 };
- 
+
 document.getElementById("password-input").addEventListener("keydown", e => {
   if (e.key === "Enter") document.getElementById("enter-btn").click();
 });
 document.getElementById("username-input").addEventListener("keydown", e => {
   if (e.key === "Enter") document.getElementById("password-input").focus();
 });
+
 // ===================== 聊天室 =====================
 let chatUnsubscribe = null;
- 
+
 function formatTime(ts) {
   if (!ts) return "";
   const d = new Date(ts);
@@ -584,16 +586,16 @@ function formatTime(ts) {
   const m = d.getMinutes().toString().padStart(2,"0");
   return `${h}:${m}`;
 }
- 
+
 function appendChatMsg(data) {
   const box = document.getElementById("chat-messages");
   if (!box) return;
   const isSystem = data.type === "system";
   const isMe = data.uid === currentUser?.id;
- 
+
   const div = document.createElement("div");
   div.className = "chat-msg" + (isSystem ? " is-system" : "") + (isMe ? " is-me" : "");
- 
+
   if (isSystem) {
     div.innerHTML = `<div class="chat-bubble">${data.text}</div>`;
   } else {
@@ -609,10 +611,11 @@ function appendChatMsg(data) {
   box.appendChild(div);
   box.scrollTop = box.scrollHeight;
 }
+
 function escapeHtml(str) {
   return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 }
- 
+
 function startChatListener() {
   if (chatUnsubscribe) return;
   chatUnsubscribe = db.collection("chat")
@@ -624,7 +627,7 @@ function startChatListener() {
       });
     });
 }
- 
+
 async function sendChatMsg(text, type = "user") {
   if (!currentUser) return;
   await db.collection("chat").add({
@@ -635,7 +638,7 @@ async function sendChatMsg(text, type = "user") {
     ts: Date.now()
   });
 }
- 
+
 // 系統訊息（賭馬結果用）
 async function sendSystemMsg(text) {
   await db.collection("chat").add({
@@ -646,7 +649,7 @@ async function sendSystemMsg(text) {
     ts: Date.now()
   });
 }
- 
+
 document.getElementById("chat-send-btn").onclick = async () => {
   const input = document.getElementById("chat-input");
   const text = input.value.trim();
@@ -654,17 +657,7 @@ document.getElementById("chat-send-btn").onclick = async () => {
   input.value = "";
   await sendChatMsg(text);
 };
+
 document.getElementById("chat-input").addEventListener("keydown", e => {
   if (e.key === "Enter") document.getElementById("chat-send-btn").click();
 });
- 
-// 把聊天室加入分頁切換
-const _origSwitchTab = switchTab;
-// 覆寫 switchTab 讓切到 chat 時啟動監聽
-function switchTab(tabName) {
-  document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.tab === tabName));
-  document.querySelectorAll(".tab-content").forEach(c => c.classList.toggle("active", c.id === `tab-${tabName}`));
-  if (tabName === "stock") renderStocks();
-  if (tabName === "leaderboard") loadLeaderboard();
-  if (tabName === "chat") startChatListener();
-}
