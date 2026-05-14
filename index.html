@@ -48,7 +48,8 @@
       </div>
       <nav class="nav-tabs">
         <button class="tab active" data-tab="home">首頁</button>
-        <button class="tab" data-tab="horse">賭馬</button>
+        <button class="tab" data-tab="horse1">賽馬1</button>
+        <button class="tab" data-tab="horse2">賽馬2</button>
         <button class="tab" data-tab="stock">股票</button>
         <button class="tab" data-tab="leaderboard">排行榜</button>
         <button class="tab" data-tab="chat">聊天室</button>
@@ -83,77 +84,95 @@
         </div>
       </section>
 
-      <!-- 賭馬 -->
-      <section id="tab-horse" class="tab-content">
+      <!-- 賽馬1 -->
+      <section id="tab-horse1" class="tab-content">
         <div class="section-header">
-          <h2>🏇 賽馬場</h2>
-          <p>6隻普通馬賠8倍｜🟠高機率馬賠5倍｜⚫低機率馬賠16倍</p>
+          <h2>🏇 賽馬1</h2>
+          <p>四馬競賽｜贏得下注金額的 4 倍</p>
         </div>
-
-        <div id="horse-idle">
+        <div id="horse1-idle">
           <div class="bet-setup">
             <h3>選擇你要押注的馬</h3>
-                        <div class="horse-select-grid">
-              <label class="horse-option" data-horse="red">
-                <input type="radio" name="horse" value="red">
-                <div class="horse-card"><span class="horse-emoji">🔴</span><span>紅馬</span></div>
-              </label>
-              <label class="horse-option" data-horse="yellow">
-                <input type="radio" name="horse" value="yellow">
-                <div class="horse-card"><span class="horse-emoji">🟡</span><span>黃馬</span></div>
-              </label>
-              <label class="horse-option" data-horse="blue">
-                <input type="radio" name="horse" value="blue">
-                <div class="horse-card"><span class="horse-emoji">🔵</span><span>藍馬</span></div>
-              </label>
-              <label class="horse-option" data-horse="green">
-                <input type="radio" name="horse" value="green">
-                <div class="horse-card"><span class="horse-emoji">🟢</span><span>綠馬</span></div>
-              </label>
-              <label class="horse-option" data-horse="purple">
-                <input type="radio" name="horse" value="purple">
-                <div class="horse-card"><span class="horse-emoji">🟣</span><span>紫馬</span></div>
-              </label>
-              <label class="horse-option" data-horse="white">
-                <input type="radio" name="horse" value="white">
-                <div class="horse-card"><span class="horse-emoji">⚪</span><span>白馬</span></div>
-              </label>
-              <label class="horse-option" data-horse="orange">
-                <input type="radio" name="horse" value="orange">
-                <div class="horse-card"><span class="horse-emoji">🟠</span><span>橙馬</span></div>
-              </label>
-              <label class="horse-option" data-horse="black">
-                <input type="radio" name="horse" value="black">
-                <div class="horse-card"><span class="horse-emoji">⚫</span><span>黑馬</span></div>
-              </label>
+            <div class="horse-select-grid" style="grid-template-columns:repeat(4,1fr)">
+              <label class="horse-option"><input type="radio" name="horse1" value="red"><div class="horse-card"><span class="horse-emoji">🔴</span><span>紅馬</span></div></label>
+              <label class="horse-option"><input type="radio" name="horse1" value="yellow"><div class="horse-card"><span class="horse-emoji">🟡</span><span>黃馬</span></div></label>
+              <label class="horse-option"><input type="radio" name="horse1" value="blue"><div class="horse-card"><span class="horse-emoji">🔵</span><span>藍馬</span></div></label>
+              <label class="horse-option"><input type="radio" name="horse1" value="green"><div class="horse-card"><span class="horse-emoji">🟢</span><span>綠馬</span></div></label>
             </div>
             <div class="bet-amount-row">
-              <input type="number" id="horse-bet-amount" placeholder="下注金額" min="1">
-              <button id="start-horse-btn" class="btn-primary">開始賽馬</button>
+              <input type="number" id="horse1-bet-amount" placeholder="下注金額" min="1">
+              <button id="start-horse1-btn" class="btn-primary">開始賽馬</button>
             </div>
           </div>
         </div>
-
-        <div id="horse-racing" style="display:none">
-          <div class="countdown-bar">
-            <span id="race-status">比賽進行中...</span>
+        <div id="horse1-racing" style="display:none">
+          <div class="countdown-bar"><span id="race1-status">比賽進行中...</span></div>
+          <div class="skill-bar">
+            <span class="skill-bar-label">技能：</span>
+            <button class="skill-btn freeze" id="skill1-freeze">❄️ 冰凍</button>
+            <button class="skill-btn boost" id="skill1-boost">⚡ 加速</button>
           </div>
           <div class="track-container">
-            <div class="track" id="track-red"><span class="track-label">🔴 紅馬 ×8</span><div class="track-lane"><div class="horse-runner" id="runner-red">🏇</div><div class="finish-flag">🏁</div></div></div>
-            <div class="track" id="track-yellow"><span class="track-label">🟡 黃馬 ×8</span><div class="track-lane"><div class="horse-runner" id="runner-yellow">🏇</div><div class="finish-flag">🏁</div></div></div>
-            <div class="track" id="track-blue"><span class="track-label">🔵 藍馬 ×8</span><div class="track-lane"><div class="horse-runner" id="runner-blue">🏇</div><div class="finish-flag">🏁</div></div></div>
-            <div class="track" id="track-green"><span class="track-label">🟢 綠馬 ×8</span><div class="track-lane"><div class="horse-runner" id="runner-green">🏇</div><div class="finish-flag">🏁</div></div></div>
-            <div class="track" id="track-purple"><span class="track-label">🟣 紫馬 ×8</span><div class="track-lane"><div class="horse-runner" id="runner-purple">🏇</div><div class="finish-flag">🏁</div></div></div>
-            <div class="track" id="track-white"><span class="track-label">⚪ 白馬 ×8</span><div class="track-lane"><div class="horse-runner" id="runner-white">🏇</div><div class="finish-flag">🏁</div></div></div>
-            <div class="track" id="track-orange"><span class="track-label">🟠 橙馬 ×5 🔥熱門</span><div class="track-lane"><div class="horse-runner" id="runner-orange">🏇</div><div class="finish-flag">🏁</div></div></div>
-            <div class="track" id="track-black"><span class="track-label">⚫ 黑馬 ×16 💎冷門</span><div class="track-lane"><div class="horse-runner" id="runner-black">🏇</div><div class="finish-flag">🏁</div></div></div>
+            <div class="track" id="track1-red"><span class="track-label">🔴 紅馬</span><div class="track-lane"><div class="horse-runner" id="runner1-red">🏇</div><div class="finish-flag">🏁</div></div></div>
+            <div class="track" id="track1-yellow"><span class="track-label">🟡 黃馬</span><div class="track-lane"><div class="horse-runner" id="runner1-yellow">🏇</div><div class="finish-flag">🏁</div></div></div>
+            <div class="track" id="track1-blue"><span class="track-label">🔵 藍馬</span><div class="track-lane"><div class="horse-runner" id="runner1-blue">🏇</div><div class="finish-flag">🏁</div></div></div>
+            <div class="track" id="track1-green"><span class="track-label">🟢 綠馬</span><div class="track-lane"><div class="horse-runner" id="runner1-green">🏇</div><div class="finish-flag">🏁</div></div></div>
           </div>
         </div>
+        <div id="horse1-result" style="display:none" class="result-card">
+          <div id="result1-title"></div>
+          <div id="result1-detail"></div>
+          <button id="race1-again-btn" class="btn-primary">再賭一場</button>
+        </div>
+      </section>
 
-        <div id="horse-result" style="display:none" class="result-card">
-          <div id="result-title"></div>
-          <div id="result-detail"></div>
-          <button id="race-again-btn" class="btn-primary">再賭一場</button>
+      <!-- 賽馬2 -->
+      <section id="tab-horse2" class="tab-content">
+        <div class="section-header">
+          <h2>🏇 賽馬2</h2>
+          <p>6隻普通馬賠8倍｜🟠高機率馬賠5倍｜⚫低機率馬賠16倍</p>
+        </div>
+        <div id="horse2-idle">
+          <div class="bet-setup">
+            <h3>選擇你要押注的馬</h3>
+            <div class="horse-select-grid">
+              <label class="horse-option"><input type="radio" name="horse2" value="red"><div class="horse-card"><span class="horse-emoji">🔴</span><span>紅馬</span></div></label>
+              <label class="horse-option"><input type="radio" name="horse2" value="yellow"><div class="horse-card"><span class="horse-emoji">🟡</span><span>黃馬</span></div></label>
+              <label class="horse-option"><input type="radio" name="horse2" value="blue"><div class="horse-card"><span class="horse-emoji">🔵</span><span>藍馬</span></div></label>
+              <label class="horse-option"><input type="radio" name="horse2" value="green"><div class="horse-card"><span class="horse-emoji">🟢</span><span>綠馬</span></div></label>
+              <label class="horse-option"><input type="radio" name="horse2" value="purple"><div class="horse-card"><span class="horse-emoji">🟣</span><span>紫馬</span></div></label>
+              <label class="horse-option"><input type="radio" name="horse2" value="white"><div class="horse-card"><span class="horse-emoji">⚪</span><span>白馬</span></div></label>
+              <label class="horse-option"><input type="radio" name="horse2" value="orange"><div class="horse-card"><span class="horse-emoji">🟠</span><span>橙馬</span></div></label>
+              <label class="horse-option"><input type="radio" name="horse2" value="black"><div class="horse-card"><span class="horse-emoji">⚫</span><span>黑馬</span></div></label>
+            </div>
+            <div class="bet-amount-row">
+              <input type="number" id="horse2-bet-amount" placeholder="下注金額" min="1">
+              <button id="start-horse2-btn" class="btn-primary">開始賽馬</button>
+            </div>
+          </div>
+        </div>
+        <div id="horse2-racing" style="display:none">
+          <div class="countdown-bar"><span id="race2-status">比賽進行中...</span></div>
+          <div class="skill-bar">
+            <span class="skill-bar-label">技能：</span>
+            <button class="skill-btn freeze" id="skill2-freeze">❄️ 冰凍</button>
+            <button class="skill-btn boost" id="skill2-boost">⚡ 加速</button>
+          </div>
+          <div class="track-container">
+            <div class="track" id="track2-red"><span class="track-label">🔴 紅馬</span><div class="track-lane"><div class="horse-runner" id="runner2-red">🏇</div><div class="finish-flag">🏁</div></div></div>
+            <div class="track" id="track2-yellow"><span class="track-label">🟡 黃馬</span><div class="track-lane"><div class="horse-runner" id="runner2-yellow">🏇</div><div class="finish-flag">🏁</div></div></div>
+            <div class="track" id="track2-blue"><span class="track-label">🔵 藍馬</span><div class="track-lane"><div class="horse-runner" id="runner2-blue">🏇</div><div class="finish-flag">🏁</div></div></div>
+            <div class="track" id="track2-green"><span class="track-label">🟢 綠馬</span><div class="track-lane"><div class="horse-runner" id="runner2-green">🏇</div><div class="finish-flag">🏁</div></div></div>
+            <div class="track" id="track2-purple"><span class="track-label">🟣 紫馬</span><div class="track-lane"><div class="horse-runner" id="runner2-purple">🏇</div><div class="finish-flag">🏁</div></div></div>
+            <div class="track" id="track2-white"><span class="track-label">⚪ 白馬</span><div class="track-lane"><div class="horse-runner" id="runner2-white">🏇</div><div class="finish-flag">🏁</div></div></div>
+            <div class="track" id="track2-orange"><span class="track-label">🟠 橙馬 🔥熱門</span><div class="track-lane"><div class="horse-runner" id="runner2-orange">🏇</div><div class="finish-flag">🏁</div></div></div>
+            <div class="track" id="track2-black"><span class="track-label">⚫ 黑馬 💎冷門</span><div class="track-lane"><div class="horse-runner" id="runner2-black">🏇</div><div class="finish-flag">🏁</div></div></div>
+          </div>
+        </div>
+        <div id="horse2-result" style="display:none" class="result-card">
+          <div id="result2-title"></div>
+          <div id="result2-detail"></div>
+          <button id="race2-again-btn" class="btn-primary">再賭一場</button>
         </div>
       </section>
 
