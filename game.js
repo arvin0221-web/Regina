@@ -24,8 +24,18 @@ const COMPANIES = [
   { id: "ciqiong",      name: "慈瓊公司",       price: 100, volatility: 1.0 },
 ];
 
-const HORSE_NAMES = { red:"紅馬", yellow:"黃馬", blue:"藍馬", green:"綠馬" };
-const FINISH_LINE = 15;
+const HORSES = {
+  red:    { name: "紅馬",  odds: 8,  move: () => Math.floor(Math.random()*3)+1 },   // 1~3格
+  yellow: { name: "黃馬",  odds: 8,  move: () => Math.floor(Math.random()*3)+1 },
+  blue:   { name: "藍馬",  odds: 8,  move: () => Math.floor(Math.random()*3)+1 },
+  green:  { name: "綠馬",  odds: 8,  move: () => Math.floor(Math.random()*3)+1 },
+  purple: { name: "紫馬",  odds: 8,  move: () => Math.floor(Math.random()*3)+1 },
+  white:  { name: "白馬",  odds: 8,  move: () => Math.floor(Math.random()*3)+1 },
+  orange: { name: "橙馬🔥", odds: 5, move: () => Math.floor(Math.random()*3)+2 },   // 2~4格（快）
+  black:  { name: "黑馬💎", odds: 16, move: () => Math.floor(Math.random()*2)+1 },  // 1~2格（慢）
+};
+const HORSE_IDS = Object.keys(HORSES);
+const FINISH_LINE = 20;
 
 // ===================== 工具函式 =====================
 function showToast(msg, duration = 2500) {
@@ -255,7 +265,7 @@ document.getElementById("modal-sell-btn").onclick = async () => {
 };
 
 // ===================== 賭馬 =====================
-let racePositions = { red: 0, yellow: 0, blue: 0, green: 0 };
+let racePositions = {};
 let raceInterval = null;
 
 document.getElementById("start-horse-btn").onclick = async () => {
@@ -277,10 +287,11 @@ function startRace(bettedHorse, betAmount) {
   document.getElementById("horse-result").style.display = "none";
 
   // Reset positions
-  racePositions = { red: 0, yellow: 0, blue: 0, green: 0 };
-  for (const h of ["red","yellow","blue","green"]) {
+  racePositions = {};
+  for (const h of HORSE_IDS) {
+    racePositions[h] = 0;
     const runner = document.getElementById(`runner-${h}`);
-    runner.style.left = "4px";
+    if (runner) runner.style.left = "4px";
     document.getElementById(`track-${h}`).classList.remove("winner");
   }
 
@@ -289,12 +300,13 @@ function startRace(bettedHorse, betAmount) {
 
   raceInterval = setInterval(() => {
     let finished = [];
-    for (const h of ["red","yellow","blue","green"]) {
+    for (const h of HORSE_IDS) {
       if (racePositions[h] < FINISH_LINE) {
-        racePositions[h] = Math.min(FINISH_LINE, racePositions[h] + Math.floor(Math.random() * 3) + 1);
+        racePositions[h] = Math.min(FINISH_LINE, racePositions[h] + HORSES[h].move());
       }
       const pct = racePositions[h] / FINISH_LINE;
-      document.getElementById(`runner-${h}`).style.left = `${4 + pct * (TRACK_WIDTH - 8)}px`;
+      const runner = document.getElementById(`runner-${h}`);
+      if (runner) runner.style.left = `${4 + pct * (TRACK_WIDTH - 8)}px`;
       if (racePositions[h] >= FINISH_LINE) finished.push(h);
     }
 
@@ -302,7 +314,7 @@ function startRace(bettedHorse, betAmount) {
       clearInterval(raceInterval);
       const winner = finished[Math.floor(Math.random() * finished.length)];
       document.getElementById(`track-${winner}`).classList.add("winner");
-      document.getElementById("race-status").textContent = `🏆 ${HORSE_NAMES[winner]} 獲勝！`;
+      document.getElementById("race-status").textContent = `🏆 ${HORSES[winner].name} 獲勝！`;
       setTimeout(() => showRaceResult(winner, bettedHorse, betAmount), 600);
     }
   }, 1000);
@@ -315,18 +327,19 @@ async function showRaceResult(winner, bettedHorse, betAmount) {
   const titleEl = document.getElementById("result-title");
   const detailEl = document.getElementById("result-detail");
 
+  const odds = HORSES[winner].odds;
   if (winner === bettedHorse) {
-    const prize = betAmount * 4;
+    const prize = betAmount * odds;
     currentUser.coins += prize;
     titleEl.innerHTML = `🎉 你贏了！`;
     titleEl.style.color = "var(--green)";
-    detailEl.textContent = `${HORSE_NAMES[winner]} 獲勝！你獲得 🪙 ${formatCoins(prize)}（下注 × 4）`;
-    sendSystemMsg(`🎉 ${currentUser.name} 押 ${HORSE_NAMES[bettedHorse]} 贏得 🪙 ${formatCoins(prize)}！`);
+    detailEl.textContent = `${HORSES[winner].name} 獲勝！你獲得 🪙 ${formatCoins(prize)}（下注 × ${odds}）`;
+    sendSystemMsg(`🎉 ${currentUser.name} 押 ${HORSES[bettedHorse].name} 贏得 🪙 ${formatCoins(prize)}！`);
   } else {
     titleEl.innerHTML = `💸 你輸了`;
     titleEl.style.color = "var(--red)";
-    detailEl.textContent = `${HORSE_NAMES[winner]} 獲勝，你押的是 ${HORSE_NAMES[bettedHorse]}。損失 🪙 ${formatCoins(betAmount)}`;
-    sendSystemMsg(`💸 ${currentUser.name} 押 ${HORSE_NAMES[bettedHorse]} 輸掉 🪙 ${formatCoins(betAmount)}。`);
+    detailEl.textContent = `${HORSES[winner].name} 獲勝，你押的是 ${HORSES[bettedHorse].name}。損失 🪙 ${formatCoins(betAmount)}`;
+    sendSystemMsg(`💸 ${currentUser.name} 押 ${HORSES[bettedHorse].name} 輸掉 🪙 ${formatCoins(betAmount)}。`);
   }
   await savePlayer();
   updateNavCoins();

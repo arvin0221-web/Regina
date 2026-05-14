@@ -493,3 +493,12 @@ input::placeholder { color: var(--text2); }
   text-align: center;
 }
 #register-btn { margin-top: 0.5rem; }
+
+/* ====== 8匹馬更新 ====== */
+.horse-select-grid { grid-template-columns: repeat(4,1fr) !important; }
+@media (max-width: 500px) { .horse-select-grid { grid-template-columns: repeat(2,1fr) !important; } }
+.horse-card { flex-direction: column; gap: 0.25rem; padding: 0.75rem 0.25rem; }
+.horse-odds { font-size: 0.8rem; font-weight: 700; color: var(--gold); }
+.horse-tag { font-size: 0.7rem; padding: 0.1rem 0.4rem; border-radius: 999px; font-weight: 700; }
+.horse-tag.hot { background: rgba(255,100,0,0.2); color: #ff6400; }
+.horse-tag.dark { background: rgba(150,100,255,0.2); color: #9664ff; }

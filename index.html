@@ -4,15 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>奶雞賭場 - 線上賭馬與股票遊戲</title>
-<meta name="description" content="奶雞賭場 - 免費線上遊戲！玩賭馬、買賣股票">
+<meta name="description" content="奶雞賭場 - 免費線上遊戲！玩賭馬、買賣股票、每日簽到領金幣，與全服玩家一起競爭排行榜！">
 <meta name="keywords" content="奶雞賭場, 線上賭馬, 股票遊戲, 免費遊戲, 金幣遊戲">
 <meta name="author" content="奶雞賭場">
 <meta name="robots" content="index, follow">
 <meta property="og:title" content="奶雞賭場">
-<meta property="og:description" content="免費線上賭馬與股票遊戲">
+<meta property="og:description" content="免費線上賭馬與股票遊戲，每日簽到領金幣！">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="zh_TW">
-<link rel="canonical" href="https://https://arvin0221-web.github.io/Regina/">
+<link rel="canonical" href="https://你的GitHub用戶名.github.io/你的repo名稱">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
@@ -87,7 +87,7 @@
       <section id="tab-horse" class="tab-content">
         <div class="section-header">
           <h2>🏇 賽馬場</h2>
-          <p>贏了獲得下注金額的 4 倍！</p>
+          <p>6隻普通馬賠8倍｜🟠高機率馬賠5倍｜⚫低機率馬賠16倍</p>
         </div>
 
         <div id="horse-idle">
@@ -96,31 +96,35 @@
             <div class="horse-select-grid">
               <label class="horse-option" data-horse="red">
                 <input type="radio" name="horse" value="red">
-                <div class="horse-card">
-                  <span class="horse-emoji">🔴</span>
-                  <span>紅馬</span>
-                </div>
+                <div class="horse-card"><span class="horse-emoji">🔴</span><span>紅馬</span><span class="horse-odds">×8</span></div>
               </label>
               <label class="horse-option" data-horse="yellow">
                 <input type="radio" name="horse" value="yellow">
-                <div class="horse-card">
-                  <span class="horse-emoji">🟡</span>
-                  <span>黃馬</span>
-                </div>
+                <div class="horse-card"><span class="horse-emoji">🟡</span><span>黃馬</span><span class="horse-odds">×8</span></div>
               </label>
               <label class="horse-option" data-horse="blue">
                 <input type="radio" name="horse" value="blue">
-                <div class="horse-card">
-                  <span class="horse-emoji">🔵</span>
-                  <span>藍馬</span>
-                </div>
+                <div class="horse-card"><span class="horse-emoji">🔵</span><span>藍馬</span><span class="horse-odds">×8</span></div>
               </label>
               <label class="horse-option" data-horse="green">
                 <input type="radio" name="horse" value="green">
-                <div class="horse-card">
-                  <span class="horse-emoji">🟢</span>
-                  <span>綠馬</span>
-                </div>
+                <div class="horse-card"><span class="horse-emoji">🟢</span><span>綠馬</span><span class="horse-odds">×8</span></div>
+              </label>
+              <label class="horse-option" data-horse="purple">
+                <input type="radio" name="horse" value="purple">
+                <div class="horse-card"><span class="horse-emoji">🟣</span><span>紫馬</span><span class="horse-odds">×8</span></div>
+              </label>
+              <label class="horse-option" data-horse="white">
+                <input type="radio" name="horse" value="white">
+                <div class="horse-card"><span class="horse-emoji">⚪</span><span>白馬</span><span class="horse-odds">×8</span></div>
+              </label>
+              <label class="horse-option" data-horse="orange">
+                <input type="radio" name="horse" value="orange">
+                <div class="horse-card"><span class="horse-emoji">🟠</span><span>橙馬</span><span class="horse-odds">×5</span><span class="horse-tag hot">熱門</span></div>
+              </label>
+              <label class="horse-option" data-horse="black">
+                <input type="radio" name="horse" value="black">
+                <div class="horse-card"><span class="horse-emoji">⚫</span><span>黑馬</span><span class="horse-odds">×16</span><span class="horse-tag dark">冷門</span></div>
               </label>
             </div>
             <div class="bet-amount-row">
@@ -135,34 +139,14 @@
             <span id="race-status">比賽進行中...</span>
           </div>
           <div class="track-container">
-            <div class="track" id="track-red">
-              <span class="track-label">🔴 紅馬</span>
-              <div class="track-lane">
-                <div class="horse-runner" id="runner-red">🏇</div>
-                <div class="finish-flag">🏁</div>
-              </div>
-            </div>
-            <div class="track" id="track-yellow">
-              <span class="track-label">🟡 黃馬</span>
-              <div class="track-lane">
-                <div class="horse-runner" id="runner-yellow">🏇</div>
-                <div class="finish-flag">🏁</div>
-              </div>
-            </div>
-            <div class="track" id="track-blue">
-              <span class="track-label">🔵 藍馬</span>
-              <div class="track-lane">
-                <div class="horse-runner" id="runner-blue">🏇</div>
-                <div class="finish-flag">🏁</div>
-              </div>
-            </div>
-            <div class="track" id="track-green">
-              <span class="track-label">🟢 綠馬</span>
-              <div class="track-lane">
-                <div class="horse-runner" id="runner-green">🏇</div>
-                <div class="finish-flag">🏁</div>
-              </div>
-            </div>
+            <div class="track" id="track-red"><span class="track-label">🔴 紅馬 ×8</span><div class="track-lane"><div class="horse-runner" id="runner-red">🏇</div><div class="finish-flag">🏁</div></div></div>
+            <div class="track" id="track-yellow"><span class="track-label">🟡 黃馬 ×8</span><div class="track-lane"><div class="horse-runner" id="runner-yellow">🏇</div><div class="finish-flag">🏁</div></div></div>
+            <div class="track" id="track-blue"><span class="track-label">🔵 藍馬 ×8</span><div class="track-lane"><div class="horse-runner" id="runner-blue">🏇</div><div class="finish-flag">🏁</div></div></div>
+            <div class="track" id="track-green"><span class="track-label">🟢 綠馬 ×8</span><div class="track-lane"><div class="horse-runner" id="runner-green">🏇</div><div class="finish-flag">🏁</div></div></div>
+            <div class="track" id="track-purple"><span class="track-label">🟣 紫馬 ×8</span><div class="track-lane"><div class="horse-runner" id="runner-purple">🏇</div><div class="finish-flag">🏁</div></div></div>
+            <div class="track" id="track-white"><span class="track-label">⚪ 白馬 ×8</span><div class="track-lane"><div class="horse-runner" id="runner-white">🏇</div><div class="finish-flag">🏁</div></div></div>
+            <div class="track" id="track-orange"><span class="track-label">🟠 橙馬 ×5 🔥熱門</span><div class="track-lane"><div class="horse-runner" id="runner-orange">🏇</div><div class="finish-flag">🏁</div></div></div>
+            <div class="track" id="track-black"><span class="track-label">⚫ 黑馬 ×16 💎冷門</span><div class="track-lane"><div class="horse-runner" id="runner-black">🏇</div><div class="finish-flag">🏁</div></div></div>
           </div>
         </div>
 
