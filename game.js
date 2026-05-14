@@ -264,100 +264,247 @@ document.getElementById("modal-sell-btn").onclick = async () => {
   renderStocks();
 };
 
-// ===================== 賭馬 =====================
-let racePositions = {};
-let raceInterval = null;
+// ===================== 賽馬共用 =====================
+const HORSE1_IDS = ["red","yellow","blue","green"];
+const HORSE1_NAMES = { red:"紅馬", yellow:"黃馬", blue:"藍馬", green:"綠馬" };
+const HORSE1_ODDS = 4;
+const FINISH_LINE1 = 15;
 
-document.getElementById("start-horse-btn").onclick = async () => {
-  const horse = document.querySelector('input[name="horse"]:checked')?.value;
-  const amount = parseFloat(document.getElementById("horse-bet-amount").value);
+let race1Positions = {};
+let race1Interval = null;
+let race2Positions = {};
+let race2Interval = null;
+
+// 技能狀態（每場重設）
+let skill1 = { frozenHorse: null, boostedHorse: null, freezeUsed: false, boostUsed: false };
+let skill2 = { frozenHorse: null, boostedHorse: null, freezeUsed: false, boostUsed: false };
+
+function resetSkills(n) {
+  const s = n === 1 ? skill1 : skill2;
+  s.frozenHorse = null; s.boostedHorse = null;
+  s.freezeUsed = false; s.boostUsed = false;
+  const prefix = `skill${n}`;
+  const fb = document.getElementById(`${prefix}-freeze`);
+  const bb = document.getElementById(`${prefix}-boost`);
+  if (fb) { fb.disabled = false; fb.classList.remove("used"); }
+  if (bb) { bb.disabled = false; bb.classList.remove("used"); }
+}
+
+function setupSkills(n, winner, loserIds) {
+  resetSkills(n);
+  const s = n === 1 ? skill1 : skill2;
+  const prefix = `skill${n}`;
+  const trackPrefix = `track${n}`;
+  const runnerPrefix = `runner${n}`;
+
+  // 冰凍技能：凍住一隻必輸的馬
+  document.getElementById(`${prefix}-freeze`).onclick = () => {
+    if (s.freezeUsed) return;
+    s.freezeUsed = true;
+    document.getElementById(`${prefix}-freeze`).disabled = true;
+    document.getElementById(`${prefix}-freeze`).classList.add("used");
+
+    // 從輸家裡隨機挑一隻凍住
+    const losers = loserIds.filter(h => h !== s.boostedHorse);
+    const target = losers[Math.floor(Math.random() * losers.length)];
+    s.frozenHorse = target;
+
+    document.getElementById(`${trackPrefix}-${target}`).classList.add("frozen");
+    showToast(`❄️ ${n===1 ? HORSE1_NAMES[target] : HORSES[target].name} 被冰凍了！`);
+  };
+
+  // 加速技能：讓勝者馬閃電特效
+  document.getElementById(`${prefix}-boost`).onclick = () => {
+    if (s.boostUsed) return;
+    s.boostUsed = true;
+    document.getElementById(`${prefix}-boost`).disabled = true;
+    document.getElementById(`${prefix}-boost`).classList.add("used");
+
+    s.boostedHorse = winner;
+    const track = document.getElementById(`${trackPrefix}-${winner}`);
+    const runner = document.getElementById(`${runnerPrefix}-${winner}`);
+    if (track) track.classList.add("boosted");
+    if (runner) runner.classList.add("boosted");
+    showToast(`⚡ ${n===1 ? HORSE1_NAMES[winner] : HORSES[winner].name} 獲得加速！`);
+  };
+}
+
+function clearSkillEffects(n, ids) {
+  const trackPrefix = `track${n}`;
+  const runnerPrefix = `runner${n}`;
+  for (const h of ids) {
+    const track = document.getElementById(`${trackPrefix}-${h}`);
+    const runner = document.getElementById(`${runnerPrefix}-${h}`);
+    if (track) { track.classList.remove("frozen","boosted"); }
+    if (runner) { runner.classList.remove("boosted"); }
+  }
+}
+
+// ===== 賽馬1（四馬，各25%，賠4倍）=====
+document.getElementById("start-horse1-btn").onclick = () => {
+  const horse = document.querySelector('input[name="horse1"]:checked')?.value;
+  const amount = parseFloat(document.getElementById("horse1-bet-amount").value);
   if (!horse) return showToast("❌ 請選擇一隻馬！");
   if (!amount || amount <= 0) return showToast("❌ 請輸入下注金額！");
   if (amount > currentUser.coins) return showToast("❌ 金幣不足！");
-
   currentUser.coins -= amount;
   updateNavCoins();
-  savePlayer(); // 背景存檔，不等待，避免卡住
-  startRace(horse, amount);
+  savePlayer();
+  startRace1(horse, amount);
 };
 
-// 根據機率決定勝者：6隻普通馬各12.5%，橙馬18.75%，黑馬6.25%
-// 總共 = 6×12.5 + 18.75 + 6.25 = 100%
-function pickWinner() {
+function startRace1(bettedHorse, betAmount) {
+  document.getElementById("horse1-idle").style.display = "none";
+  document.getElementById("horse1-racing").style.display = "block";
+  document.getElementById("horse1-result").style.display = "none";
+
+  // 四馬各25%均等機率
+  const winner = HORSE1_IDS[Math.floor(Math.random() * 4)];
+
+  race1Positions = {};
+  clearSkillEffects(1, HORSE1_IDS);
+  for (const h of HORSE1_IDS) {
+    race1Positions[h] = 0;
+    const runner = document.getElementById(`runner1-${h}`);
+    if (runner) runner.style.left = "4px";
+    document.getElementById(`track1-${h}`).classList.remove("winner");
+  }
+  const losers1 = HORSE1_IDS.filter(h => h !== winner);
+  setupSkills(1, winner, losers1);
+
+  document.getElementById("race1-status").textContent = "比賽進行中...🏃";
+  const TRACK_WIDTH = document.querySelector(".track-lane").offsetWidth - 40;
+
+  race1Interval = setInterval(() => {
+    let allDone = true;
+    for (const h of HORSE1_IDS) {
+      if (h === skill1.frozenHorse) continue; // 冰凍：跳過不移動
+      if (race1Positions[h] < FINISH_LINE1) {
+        allDone = false;
+        const step = h === winner ? Math.floor(Math.random()*3)+1 : Math.floor(Math.random()*2)+1;
+        race1Positions[h] = Math.min(FINISH_LINE1, race1Positions[h] + step);
+      }
+      const pct = race1Positions[h] / FINISH_LINE1;
+      const runner = document.getElementById(`runner1-${h}`);
+      if (runner) runner.style.left = `${4 + pct * (TRACK_WIDTH - 8)}px`;
+    }
+    if (allDone || race1Positions[winner] >= FINISH_LINE1) {
+      race1Positions[winner] = FINISH_LINE1;
+      const runner = document.getElementById(`runner1-${winner}`);
+      if (runner) runner.style.left = `${4 + (TRACK_WIDTH - 8)}px`;
+      clearInterval(race1Interval);
+      clearSkillEffects(1, HORSE1_IDS);
+      document.getElementById(`track1-${winner}`).classList.add("winner");
+      document.getElementById("race1-status").textContent = `🏆 ${HORSE1_NAMES[winner]} 獲勝！`;
+      setTimeout(() => showRace1Result(winner, bettedHorse, betAmount), 600);
+    }
+  }, 1000);
+}
+
+async function showRace1Result(winner, bettedHorse, betAmount) {
+  document.getElementById("horse1-racing").style.display = "none";
+  document.getElementById("horse1-result").style.display = "block";
+  const titleEl = document.getElementById("result1-title");
+  const detailEl = document.getElementById("result1-detail");
+  if (winner === bettedHorse) {
+    const prize = betAmount * HORSE1_ODDS;
+    currentUser.coins += prize;
+    titleEl.innerHTML = `🎉 你贏了！`;
+    titleEl.style.color = "var(--green)";
+    detailEl.textContent = `${HORSE1_NAMES[winner]} 獲勝！你獲得 🪙 ${formatCoins(prize)}（下注 × ${HORSE1_ODDS}）`;
+    sendSystemMsg(`🎉 ${currentUser.name} 在賽馬1押 ${HORSE1_NAMES[bettedHorse]} 贏得 🪙 ${formatCoins(prize)}！`);
+  } else {
+    titleEl.innerHTML = `💸 你輸了`;
+    titleEl.style.color = "var(--red)";
+    detailEl.textContent = `${HORSE1_NAMES[winner]} 獲勝，你押的是 ${HORSE1_NAMES[bettedHorse]}。損失 🪙 ${formatCoins(betAmount)}`;
+    sendSystemMsg(`💸 ${currentUser.name} 在賽馬1押 ${HORSE1_NAMES[bettedHorse]} 輸掉 🪙 ${formatCoins(betAmount)}。`);
+  }
+  await savePlayer();
+  updateNavCoins();
+}
+
+document.getElementById("race1-again-btn").onclick = () => {
+  document.getElementById("horse1-result").style.display = "none";
+  document.getElementById("horse1-idle").style.display = "block";
+  const checked = document.querySelector('input[name="horse1"]:checked');
+  if (checked) checked.checked = false;
+  document.getElementById("horse1-bet-amount").value = "";
+};
+
+// ===== 賽馬2（八馬，機率不均，預定勝者）=====
+function pickWinner2() {
   const roll = Math.random() * 100;
-  // 橙馬：0~18.75
   if (roll < 18.75) return "orange";
-  // 黑馬：18.75~25
   if (roll < 25) return "black";
-  // 6隻普通馬各平分剩下75%，每隻12.5%
   const normals = ["red","yellow","blue","green","purple","white"];
   const idx = Math.floor((roll - 25) / 12.5);
   return normals[Math.min(idx, 5)];
 }
 
-function startRace(bettedHorse, betAmount) {
-  document.getElementById("horse-idle").style.display = "none";
-  document.getElementById("horse-racing").style.display = "block";
-  document.getElementById("horse-result").style.display = "none";
+document.getElementById("start-horse2-btn").onclick = () => {
+  const horse = document.querySelector('input[name="horse2"]:checked')?.value;
+  const amount = parseFloat(document.getElementById("horse2-bet-amount").value);
+  if (!horse) return showToast("❌ 請選擇一隻馬！");
+  if (!amount || amount <= 0) return showToast("❌ 請輸入下注金額！");
+  if (amount > currentUser.coins) return showToast("❌ 金幣不足！");
+  currentUser.coins -= amount;
+  updateNavCoins();
+  savePlayer();
+  startRace2(horse, amount);
+};
 
-  // 開賽前先決定好勝者（保證機率正確）
-  const winner = pickWinner();
+function startRace2(bettedHorse, betAmount) {
+  document.getElementById("horse2-idle").style.display = "none";
+  document.getElementById("horse2-racing").style.display = "block";
+  document.getElementById("horse2-result").style.display = "none";
 
-  // Reset positions
-  racePositions = {};
+  const winner = pickWinner2();
+
+  race2Positions = {};
+  clearSkillEffects(2, HORSE_IDS);
   for (const h of HORSE_IDS) {
-    racePositions[h] = 0;
-    const runner = document.getElementById(`runner-${h}`);
+    race2Positions[h] = 0;
+    const runner = document.getElementById(`runner2-${h}`);
     if (runner) runner.style.left = "4px";
-    document.getElementById(`track-${h}`).classList.remove("winner");
+    document.getElementById(`track2-${h}`).classList.remove("winner");
   }
+  const losers2 = HORSE_IDS.filter(h => h !== winner);
+  setupSkills(2, winner, losers2);
 
-  document.getElementById("race-status").textContent = "比賽進行中...🏃";
+  document.getElementById("race2-status").textContent = "比賽進行中...🏃";
   const TRACK_WIDTH = document.querySelector(".track-lane").offsetWidth - 40;
 
-  // 動畫只是視覺效果，勝者已確定
-  // 勝者每回合走快一點，讓動畫看起來合理
-  raceInterval = setInterval(() => {
+  race2Interval = setInterval(() => {
     let allDone = true;
     for (const h of HORSE_IDS) {
-      if (racePositions[h] < FINISH_LINE) {
+      if (h === skill2.frozenHorse) continue; // 冰凍：跳過不移動
+      if (race2Positions[h] < FINISH_LINE) {
         allDone = false;
-        // 勝者稍微快一點點，其他馬慢一點，但差距不大避免太明顯
-        let step;
-        if (h === winner) {
-          step = Math.floor(Math.random() * 3) + 1; // 1~3
-        } else {
-          step = Math.floor(Math.random() * 2) + 1; // 1~2
-        }
-        racePositions[h] = Math.min(FINISH_LINE, racePositions[h] + step);
+        const step = h === winner ? Math.floor(Math.random()*3)+1 : Math.floor(Math.random()*2)+1;
+        race2Positions[h] = Math.min(FINISH_LINE, race2Positions[h] + step);
       }
-      const pct = racePositions[h] / FINISH_LINE;
-      const runner = document.getElementById(`runner-${h}`);
+      const pct = race2Positions[h] / FINISH_LINE;
+      const runner = document.getElementById(`runner2-${h}`);
       if (runner) runner.style.left = `${4 + pct * (TRACK_WIDTH - 8)}px`;
     }
-
-    if (allDone || racePositions[winner] >= FINISH_LINE) {
-      // 強制讓勝者到終點
-      racePositions[winner] = FINISH_LINE;
-      const pct = 1;
-      const runner = document.getElementById(`runner-${winner}`);
-      if (runner) runner.style.left = `${4 + pct * (TRACK_WIDTH - 8)}px`;
-
-      clearInterval(raceInterval);
-      document.getElementById(`track-${winner}`).classList.add("winner");
-      document.getElementById("race-status").textContent = `🏆 ${HORSES[winner].name} 獲勝！`;
-      setTimeout(() => showRaceResult(winner, bettedHorse, betAmount), 600);
+    if (allDone || race2Positions[winner] >= FINISH_LINE) {
+      race2Positions[winner] = FINISH_LINE;
+      const runner = document.getElementById(`runner2-${winner}`);
+      if (runner) runner.style.left = `${4 + (TRACK_WIDTH - 8)}px`;
+      clearInterval(race2Interval);
+      clearSkillEffects(2, HORSE_IDS);
+      document.getElementById(`track2-${winner}`).classList.add("winner");
+      document.getElementById("race2-status").textContent = `🏆 ${HORSES[winner].name} 獲勝！`;
+      setTimeout(() => showRace2Result(winner, bettedHorse, betAmount), 600);
     }
   }, 1000);
 }
 
-async function showRaceResult(winner, bettedHorse, betAmount) {
-  document.getElementById("horse-racing").style.display = "none";
-  document.getElementById("horse-result").style.display = "block";
-
-  const titleEl = document.getElementById("result-title");
-  const detailEl = document.getElementById("result-detail");
-
+async function showRace2Result(winner, bettedHorse, betAmount) {
+  document.getElementById("horse2-racing").style.display = "none";
+  document.getElementById("horse2-result").style.display = "block";
+  const titleEl = document.getElementById("result2-title");
+  const detailEl = document.getElementById("result2-detail");
   const odds = HORSES[winner].odds;
   if (winner === bettedHorse) {
     const prize = betAmount * odds;
@@ -365,22 +512,23 @@ async function showRaceResult(winner, bettedHorse, betAmount) {
     titleEl.innerHTML = `🎉 你贏了！`;
     titleEl.style.color = "var(--green)";
     detailEl.textContent = `${HORSES[winner].name} 獲勝！你獲得 🪙 ${formatCoins(prize)}（下注 × ${odds}）`;
-    sendSystemMsg(`🎉 ${currentUser.name} 押 ${HORSES[bettedHorse].name} 贏得 🪙 ${formatCoins(prize)}！`);
+    sendSystemMsg(`🎉 ${currentUser.name} 在賽馬2押 ${HORSES[bettedHorse].name} 贏得 🪙 ${formatCoins(prize)}！`);
   } else {
     titleEl.innerHTML = `💸 你輸了`;
     titleEl.style.color = "var(--red)";
     detailEl.textContent = `${HORSES[winner].name} 獲勝，你押的是 ${HORSES[bettedHorse].name}。損失 🪙 ${formatCoins(betAmount)}`;
-    sendSystemMsg(`💸 ${currentUser.name} 押 ${HORSES[bettedHorse].name} 輸掉 🪙 ${formatCoins(betAmount)}。`);
+    sendSystemMsg(`💸 ${currentUser.name} 在賽馬2押 ${HORSES[bettedHorse].name} 輸掉 🪙 ${formatCoins(betAmount)}。`);
   }
   await savePlayer();
   updateNavCoins();
 }
 
-document.getElementById("race-again-btn").onclick = () => {
-  document.getElementById("horse-result").style.display = "none";
-  document.getElementById("horse-idle").style.display = "block";
-  document.querySelector('input[name="horse"]:checked') && (document.querySelector('input[name="horse"]:checked').checked = false);
-  document.getElementById("horse-bet-amount").value = "";
+document.getElementById("race2-again-btn").onclick = () => {
+  document.getElementById("horse2-result").style.display = "none";
+  document.getElementById("horse2-idle").style.display = "block";
+  const checked = document.querySelector('input[name="horse2"]:checked');
+  if (checked) checked.checked = false;
+  document.getElementById("horse2-bet-amount").value = "";
 };
 
 // ===================== 簽到 =====================
@@ -508,6 +656,7 @@ function switchTab(tabName) {
   if (tabName === "stock") renderStocks();
   if (tabName === "leaderboard") loadLeaderboard();
   if (tabName === "chat") startChatListener();
+  if (tabName === "horse1" || tabName === "horse2") { /* reset nothing needed */ }
 }
 
 document.querySelectorAll(".tab").forEach(tab => {
