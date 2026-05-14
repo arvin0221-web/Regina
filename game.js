@@ -1,5 +1,5 @@
 // ===================== FIREBASE 設定 =====================
-
+// ⚠️ 把下面這段換成你自己的 Firebase 設定
 const firebaseConfig = {
   apiKey: "AIzaSyAIg3EJwhKY5K0LG5yWv-NT76lR9j8Z3GA",
   authDomain: "regina-67.firebaseapp.com",
@@ -120,7 +120,10 @@ async function fluctuateStocks(stocks) {
     const last = data.lastUpdated || 0;
     if (now - last > 3600000) {
       const change = (Math.random() * 2 - 1) * co.volatility;
-      const newPrice = Math.max(0.01, data.price * (1 + change));
+      // 加入回歸基準價的力道，避免無限暴跌
+      const basePrice = co.price; // 初始基準價
+      const reversion = (basePrice - data.price) * 0.05; // 5%回歸力
+      const newPrice = Math.max(1, data.price * (1 + change) + reversion);
       batch.update(db.collection("stocks").doc(co.id), {
         price: parseFloat(newPrice.toFixed(4)),
         lastUpdated: now
@@ -255,7 +258,7 @@ document.getElementById("modal-sell-btn").onclick = async () => {
 let racePositions = { red: 0, yellow: 0, blue: 0, green: 0 };
 let raceInterval = null;
 
-document.getElementById("start-horse-btn").onclick = () => {
+document.getElementById("start-horse-btn").onclick = async () => {
   const horse = document.querySelector('input[name="horse"]:checked')?.value;
   const amount = parseFloat(document.getElementById("horse-bet-amount").value);
   if (!horse) return showToast("❌ 請選擇一隻馬！");
@@ -263,6 +266,7 @@ document.getElementById("start-horse-btn").onclick = () => {
   if (amount > currentUser.coins) return showToast("❌ 金幣不足！");
 
   currentUser.coins -= amount;
+  await savePlayer();
   updateNavCoins();
   startRace(horse, amount);
 };
@@ -354,7 +358,13 @@ document.getElementById("checkin-btn").onclick = async () => {
 async function loadLeaderboard() {
   const snap = await db.collection("players").orderBy("coins", "desc").limit(200).get();
   const all = [];
-  snap.forEach(doc => all.push({ id: doc.id, ...doc.data() }));
+  snap.forEach(doc => {
+    const data = doc.data();
+    // 過濾掉沒有名字或密碼的殘留資料
+    if (data.name && data.passwordHash) {
+      all.push({ id: doc.id, ...data });
+    }
+  });
 
   const list = document.getElementById("leaderboard-list");
   list.innerHTML = "";
@@ -661,3 +671,5 @@ document.getElementById("chat-send-btn").onclick = async () => {
 document.getElementById("chat-input").addEventListener("keydown", e => {
   if (e.key === "Enter") document.getElementById("chat-send-btn").click();
 });
+
+
