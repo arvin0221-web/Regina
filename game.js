@@ -276,15 +276,32 @@ document.getElementById("start-horse-btn").onclick = async () => {
   if (amount > currentUser.coins) return showToast("❌ 金幣不足！");
 
   currentUser.coins -= amount;
-  await savePlayer();
   updateNavCoins();
+  savePlayer(); // 背景存檔，不等待，避免卡住
   startRace(horse, amount);
 };
+
+// 根據機率決定勝者：6隻普通馬各12.5%，橙馬18.75%，黑馬6.25%
+// 總共 = 6×12.5 + 18.75 + 6.25 = 100%
+function pickWinner() {
+  const roll = Math.random() * 100;
+  // 橙馬：0~18.75
+  if (roll < 18.75) return "orange";
+  // 黑馬：18.75~25
+  if (roll < 25) return "black";
+  // 6隻普通馬各平分剩下75%，每隻12.5%
+  const normals = ["red","yellow","blue","green","purple","white"];
+  const idx = Math.floor((roll - 25) / 12.5);
+  return normals[Math.min(idx, 5)];
+}
 
 function startRace(bettedHorse, betAmount) {
   document.getElementById("horse-idle").style.display = "none";
   document.getElementById("horse-racing").style.display = "block";
   document.getElementById("horse-result").style.display = "none";
+
+  // 開賽前先決定好勝者（保證機率正確）
+  const winner = pickWinner();
 
   // Reset positions
   racePositions = {};
@@ -298,21 +315,35 @@ function startRace(bettedHorse, betAmount) {
   document.getElementById("race-status").textContent = "比賽進行中...🏃";
   const TRACK_WIDTH = document.querySelector(".track-lane").offsetWidth - 40;
 
+  // 動畫只是視覺效果，勝者已確定
+  // 勝者每回合走快一點，讓動畫看起來合理
   raceInterval = setInterval(() => {
-    let finished = [];
+    let allDone = true;
     for (const h of HORSE_IDS) {
       if (racePositions[h] < FINISH_LINE) {
-        racePositions[h] = Math.min(FINISH_LINE, racePositions[h] + HORSES[h].move());
+        allDone = false;
+        // 勝者稍微快一點點，其他馬慢一點，但差距不大避免太明顯
+        let step;
+        if (h === winner) {
+          step = Math.floor(Math.random() * 3) + 1; // 1~3
+        } else {
+          step = Math.floor(Math.random() * 2) + 1; // 1~2
+        }
+        racePositions[h] = Math.min(FINISH_LINE, racePositions[h] + step);
       }
       const pct = racePositions[h] / FINISH_LINE;
       const runner = document.getElementById(`runner-${h}`);
       if (runner) runner.style.left = `${4 + pct * (TRACK_WIDTH - 8)}px`;
-      if (racePositions[h] >= FINISH_LINE) finished.push(h);
     }
 
-    if (finished.length > 0) {
+    if (allDone || racePositions[winner] >= FINISH_LINE) {
+      // 強制讓勝者到終點
+      racePositions[winner] = FINISH_LINE;
+      const pct = 1;
+      const runner = document.getElementById(`runner-${winner}`);
+      if (runner) runner.style.left = `${4 + pct * (TRACK_WIDTH - 8)}px`;
+
       clearInterval(raceInterval);
-      const winner = finished[Math.floor(Math.random() * finished.length)];
       document.getElementById(`track-${winner}`).classList.add("winner");
       document.getElementById("race-status").textContent = `🏆 ${HORSES[winner].name} 獲勝！`;
       setTimeout(() => showRaceResult(winner, bettedHorse, betAmount), 600);
