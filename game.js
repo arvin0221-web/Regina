@@ -1,4 +1,5 @@
 // ===================== FIREBASE 設定 =====================
+// ⚠️ 把下面這段換成你自己的 Firebase 設定
 const firebaseConfig = {
   apiKey: "AIzaSyAIg3EJwhKY5K0LG5yWv-NT76lR9j8Z3GA",
   authDomain: "regina-67.firebaseapp.com",
@@ -372,7 +373,7 @@ function startRace1(bettedHorse, betAmount) {
   setupSkills(1, winner, losers1);
 
   document.getElementById("race1-status").textContent = "比賽進行中...🏃";
-  const TRACK_WIDTH = document.querySelector(".track-lane").offsetWidth - 40;
+  const TRACK_WIDTH = document.querySelector("#track1-red .track-lane").offsetWidth - 40;
 
   race1Interval = setInterval(() => {
     let allDone = true;
@@ -471,7 +472,7 @@ function startRace2(bettedHorse, betAmount) {
   setupSkills(2, winner, losers2);
 
   document.getElementById("race2-status").textContent = "比賽進行中...🏃";
-  const TRACK_WIDTH = document.querySelector(".track-lane").offsetWidth - 40;
+  const TRACK_WIDTH = document.querySelector("#track2-red .track-lane").offsetWidth - 40;
 
   race2Interval = setInterval(() => {
     let allDone = true;
